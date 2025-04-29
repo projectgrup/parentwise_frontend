@@ -2,7 +2,7 @@
 import streamlit as st
 import requests
 
-BACKEND_URL = "https://your-backend-url.com"
+BACKEND_URL = "https://parentwise-backend.onrender.com"
 
 st.title("👶 ParentWise AI: Smart Parenting Assistant")
 
