@@ -1,20 +1,21 @@
 import streamlit as st
 import requests
 
-BACKEND_URL = "https://parentwise-backend.onrender.com"
+BACKEND_URL = "https://parentwise-backend.onrender.com"  # ✅ Replace with your actual backend URL
 
+st.set_page_config(page_title="ParentWise AI", layout="wide")
 st.title("👶 ParentWise AI: Smart Parenting Assistant")
 
-menu = ["Parenting Q&A", "Schedule Planner", "Feedback", "Login", "Story Generator"]
-choice = st.sidebar.selectbox("Menu", menu)
+menu = ["Parenting Q&A", "Schedule Planner", "Feedback", "Story Generator", "Login"]
+choice = st.sidebar.selectbox("Select Module", menu)
 
-# 🔐 Firebase Login
+# 🔐 Login (Firebase - placeholder)
 if choice == "Login":
     st.subheader("User Login (Firebase)")
     token = st.text_input("Firebase ID Token")
-    if st.button("Verify"):
+    if st.button("Verify Token"):
         try:
-            res = requests.post(f"{BACKEND_URL}/auth/verify", data={"token": token})
+            res = requests.post(f"{BACKEND_URL}/auth/verify", json={"token": token})
             st.json(res.json())
         except Exception as e:
             st.error("Error verifying token.")
@@ -22,74 +23,80 @@ if choice == "Login":
 
 # 💬 Parenting Q&A
 elif choice == "Parenting Q&A":
-    st.subheader("Ask Parenting Question")
-    question = st.text_input("Question")
-    lang = st.selectbox("Language", ["en", "hi", "fr", "es"])
-    if st.button("Ask"):
-        try:
-            res = requests.post(f"{BACKEND_URL}/qa/ask", data={"question": question, "lang": lang})
-            result = res.json()
-            if "response" in result:
-                st.success(result["response"])
-            else:
-                st.warning("No response returned from backend.")
-        except Exception as e:
-            st.error("❌ Could not decode response from backend.")
-            st.text(f"Raw response: {res.text}")
+    st.subheader("Ask Your Parenting Question")
+    question = st.text_input("Enter your question:")
+    lang = st.selectbox("Select response language:", ["en", "hi", "es", "fr", "de"])
+    if st.button("Get Answer"):
+        if question:
+            try:
+                res = requests.post(f"{BACKEND_URL}/ask_question",
+                                    json={"question": question, "target_language": lang})
+                answer = res.json().get("answer")
+                if answer:
+                    st.success(answer)
+                else:
+                    st.warning("No answer returned.")
+            except Exception as e:
+                st.error("❌ Backend error.")
+                st.text(str(e))
+        else:
+            st.warning("Please enter a question.")
 
-# ⏰ Toddler Schedule Generator
+# ⏰ Schedule Planner
 elif choice == "Schedule Planner":
-    st.subheader("Generate Toddler Routine")
-    age = st.number_input("Toddler Age (years)", 1, 6)
-    wake = st.time_input("Wake Up Time")
-    sleep = st.time_input("Sleep Time")
+    st.subheader("Generate Toddler Schedule")
+    age = st.slider("Toddler Age (1-6)", 1, 6)
+    wake = st.time_input("Wake Time")
+    nap = st.selectbox("Nap Preference", ["No nap", "1 nap", "2 naps"])
+    meals = st.slider("Meals per day", 3, 6)
     if st.button("Generate Schedule"):
         try:
-            res = requests.post(f"{BACKEND_URL}/schedule/generate", data={
-                "age": age,
-                "wake_time": str(wake),
-                "sleep_time": str(sleep)
-            })
-            st.json(res.json())
+            res = requests.post(f"{BACKEND_URL}/generate_schedule",
+                                json={"age": age, "wake_time": str(wake), "nap_pref": nap, "meals": meals})
+            routine = res.json().get("routine")
+            st.text_area("Suggested Routine", routine, height=250)
         except Exception as e:
-            st.error("❌ Failed to generate schedule.")
+            st.error("❌ Failed to generate routine.")
             st.text(str(e))
 
 # ⭐ Feedback Submission
 elif choice == "Feedback":
-    st.subheader("Submit Feedback")
-    question = st.text_input("Your Question")
-    answer = st.text_input("Answer Received")
-    rating = st.slider("Rate Answer (1-5)", 1, 5)
+    st.subheader("Submit Feedback on Answers")
+    question = st.text_input("Question You Asked")
+    answer = st.text_area("Answer You Received")
+    rating = st.slider("Rating (1 = Poor, 5 = Great)", 1, 5)
     if st.button("Submit Feedback"):
         try:
-            res = requests.post(f"{BACKEND_URL}/feedback/submit", data={
-                "question": question,
-                "answer": answer,
-                "rating": rating
-            })
-            result = res.json()
-            if "status" in result:
-                st.success(result["status"])
+            res = requests.post(f"{BACKEND_URL}/submit_feedback",
+                                json={"question": question, "answer": answer, "rating": rating})
+            if res.status_code == 200:
+                st.success("Feedback submitted successfully!")
             else:
-                st.warning("Feedback not saved.")
+                st.warning("Failed to save feedback.")
         except Exception as e:
-            st.error("❌ Could not submit feedback.")
+            st.error("Error submitting feedback.")
             st.text(str(e))
 
 # 📚 Bedtime Story Generator
 elif choice == "Story Generator":
-    st.subheader("Generate Bedtime Story")
-    age = st.number_input("Child Age", 1, 10)
-    theme = st.text_input("Story Theme")
+    st.subheader("Generate a Bedtime Story")
+    age = st.number_input("Child's Age", min_value=1, max_value=10)
+    theme = st.text_input("Enter a story theme (e.g., jungle, friendship)")
     if st.button("Generate Story"):
         try:
-            res = requests.post(f"{BACKEND_URL}/story/generate", data={"age": age, "theme": theme})
-            result = res.json()
-            if "story" in result:
-                st.success(result["story"])
+            res = requests.post(f"{BACKEND_URL}/story/generate", json={"age": age, "theme": theme})
+            story = res.json().get("story")
+            if story:
+                st.success(story)
             else:
                 st.warning("No story returned.")
         except Exception as e:
             st.error("❌ Error generating story.")
-            st.text(f"Raw response: {res.text}")
+            st.text(str(e))
+
+
+       
+
+          
+
+
