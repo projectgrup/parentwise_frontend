@@ -6,7 +6,7 @@ BACKEND_URL = "https://parentwise-backend.onrender.com"
 
 st.title("👶 ParentWise AI: Smart Parenting Assistant")
 
-menu = ["Parenting Q&A", "Schedule Planner", "Feedback", "Login"]
+menu = ["Parenting Q&A", "Schedule Planner", "Feedback", "Story Generator", "Login"]
 choice = st.sidebar.selectbox("Select Module", menu)
 
 # 🔐 Login
@@ -81,3 +81,23 @@ elif choice == "Feedback":
         except Exception as e:
             st.error("Backend error.")
             st.text(str(e))
+# 📚 Story Generator
+elif choice == "Story Generator":
+    st.subheader("AI-Generated Toddler Story")
+    age = st.slider("Toddler Age", 1, 6)
+    theme = st.selectbox("Choose a Theme", ["friendship", "jungle", "default"])
+    if st.button("Generate Story"):
+        try:
+            res = requests.post(f"{BACKEND_URL}/story/generate", json={
+                "age": age,
+                "theme": theme
+            })
+            if res.status_code == 200:
+                st.text_area("Generated Story:", res.json()["story"], height=250)
+            else:
+                st.error("Failed to generate story.")
+                st.text(res.text)
+        except Exception as e:
+            st.error("Backend error.")
+            st.text(str(e))
+
