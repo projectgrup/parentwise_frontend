@@ -27,7 +27,7 @@ elif choice == "Parenting Q&A":
     question = st.text_input("Enter your question:")
     if st.button("Ask"):
         try:
-            res = requests.post(f"{BACKEND_URL}/ask_question", json={"question": question})
+            res = requests.post(f"{BACKEND_URL}/ask", json={"question": question})
             if res.status_code == 200:
                 st.success(res.json().get("answer", "No answer returned."))
             else:
